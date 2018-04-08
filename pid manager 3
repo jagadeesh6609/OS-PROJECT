@@ -1,159 +1,126 @@
 #include<stdio.h>
 #include<unistd.h>
 #include<stdlib.h>
+#include<pthread.h>
 #define MAX 1000
 #define MIN 100
-int y,c[900];
-struct p
-{
-	int pid,status;
-	p *next;
-}*root;
+#define SIZE 900
+int a[900],b[900],c[900];
 int  allocate_map()
 {
-	root=NULL;
-	y=MIN;
+        int y=MIN;
+        for(int i=0;i<=900;i++)
+        {
+                a[i]=0;
+                b[i]=y;
+                y++;
+        }
 }
+
+
+
+
+int items[SIZE];
+int front = -1, rear =-1;
+
+int isFull()
+{
+    if( (front == rear + 1) || (front == 0 && rear == SIZE-1)) return 1;
+    return 0;
+}
+
+int isEmpty()
+{
+    if(front == -1) return 1;
+    return 0;
+}
+
+void enQueue(int element)
+{
+    if(isFull()) printf("\n Queue is full!! \n");
+    else
+    {
+        if(front == -1) front = 0;
+        rear = (rear + 1) % SIZE;
+        items[rear] = element;
+
+    }
+}
+
+
+int deQueue()
+{
+    int element;
+    if(isEmpty()) {
+
+        return(-1);
+    } else {
+        element = items[front];
+	        if (front == rear){
+            front = -1;
+            rear = -1;
+        }
+        else {
+            front = (front + 1) % SIZE;
+
+        }
+        return(element);
+    }
+}
+
 int allocate_pid()
 {
-	p *t2;
-	if(root==NULL)
-	{
-		p *t1=(p *)malloc(sizeof(p));
-		t1->status=1;
-		y++;
-		t1->pid=y;
-		t1->next=NULL;
-		
-		printf("pid %d is assigned\n",t1->pid);
-		
-		root=t1;
-		
-		return t1->pid; 
-	}
-	if(y>=1000)
-	{
-		printf("cannot assign\n");
-		return 0;
-	}
-	
-	else
-	{
-		
-		t2=root;
-		while(t2->next!=NULL)
-		{
-			if(t2->status==0)
-			{
-				break;
-			}
-			t2=t2->next;
-		}
-	}
-	//printf("%d\n",t2->status);
-	if(t2->status==0)
-	{
-		
-	
-	t2->status=1;
-	printf("pid %d is assigned\n",t2->pid);
-	
-	return t2->pid;
-	
-	}
-	if(t2->next==NULL)
-	{
-		p *t3=(p *)malloc(sizeof(p));
-		t2->next=t3;
-		t3->status=1;
-		y++;
-	
-		t3->pid=y;
-		t3->next=NULL;
-		//printf("I am here\n");
-		printf("pid %d is assigned\n",t3->pid);
-		
-		return t3->pid;
-		
-	}
-	
+        int i;
+        for(i=0;i<=900;i++)
+        {
+                if(a[i]==0)
+                break;
+        }
+        if(i>900)
+        {
+                printf("cannot assign\n");
+                return 0;
+        }
+        else
+        {
+                a[i]=1;
+                printf("process id =%d is assigned\n",b[i]);
 
-	
-	
-	//t2->pid=y;
-	//y++;
-	
+                return b[i];
+
+        }
 }
 void release_pid(int x)
 {
-	p *t=(p *)malloc(sizeof(p));
-	t=root;
-	/*if(root->pid==x)
-	{
-		y=MIN;
-		//root->status=0;
-		root=NULL;
-	}*/
-	while(t->next!=NULL)
-	{
-		if(t->pid==x)
-		{
-			
-			break;
-		}
-	t=t->next;
-	}
-	t->status=0;
-	printf("pid %d is released\n",t->pid);
+        int  y;
+        y=x-100;
+        a[y]=0;
+        printf("process having  id %d  is released\n",b[y]);
 }
 void sleep1()
 {
-	int s;
-	s=rand()%10;
-	printf("%d",s);
-	sleep(s);
+        int d=rand()%10;
+        printf("%d\n",d);
+        sleep(d);
 }
 void test()
 {
-	int j;
-	for(j=0;j<900;j++)
-	{
-		c[j]=allocate_pid();
-		//printf("%d\n",c[j]);
-		//sleep1();
-		
-		if(c[j]==0)
-		{
-			printf("pid is not assigned\n");
-		}
-		else
-		{
-		
-		release_pid(c[j]);
-		
-}
-	}
-}
-void count()
-{
 
-	
-	p *t;
-	int count=0;
-	t=root;
-	while(t!=NULL)
-	{
-		t=t->next;
-		count++;
-	}
-	printf("no of nodes created= %d \n",count);
-	
-	
+                int j=0;
+                c[j]=allocate_pid();
+                enQueue(c[j]);
+                int v=deQueue();
+                sleep1();
+                release_pid(v);
 }
 
 main()
-{
-	allocate_map();
-	test();
-	//count();
+{       int i;
+        pthread_t pt[100];
+        allocate_map();
+for(i=0;i<100;i++)
+        pthread_create(&pt[i],NULL,test,NULL);
+for(i=0;i<100;i++)
+pthread_join(pt[i],NULL);
 }
+
